@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Szélerőművek Adatbázis</title>
+    <!-- Stíluslap és egyéb közös elemek -->
+    <%- include('partials/head') %>
+</head>
+<body>
+    <!-- Fejléc -->
+    <%- include('partials/header') %>
+
+    <!-- Tartalom -->
+    <main id="main" class="main" style="margin-top: 100px;">
+        <section class="section">
+            <div class="container">
+                <h2 class="text-center">Szélerőművek Adatbázis</h2>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Helyszín</th>
+                                <th>Megye</th>
+                                <th>Régió</th>
+                                <th>Tornyok Száma</th>
+                                <th>Teljesítmény (MW)</th>
+                                <th>Kezdés Éve</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% data.forEach(row => { %>
+                                <tr>
+                                    <td><%= row.helyszin_nev %></td>
+                                    <td><%= row.megye_nev %></td>
+                                    <td><%= row.regio %></td>
+                                    <td><%= row.darab %></td>
+                                    <td><%= row.teljesitmeny %></td>
+                                    <td><%= row.kezdev %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Lábjegyzet -->
+    <%- include('partials/footer') %>
+</body>
+</html>
+
