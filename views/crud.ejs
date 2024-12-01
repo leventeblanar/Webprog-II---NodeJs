@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Szélerőművek CRUD</title>
+    <!-- Stíluslap és egyéb közös elemek -->
+    <%- include('partials/head') %>
+    <style>
+        .form-inline {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .form-inline > div {
+            flex: 1;
+        }
+        .form-inline button {
+            margin-left: auto;
+        }
+        .action-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        .alert-message {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #28a745;
+            display: none; /* Kezdetben rejtve */
+            margin-left: 15px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Fejléc -->
+    <%- include('partials/header') %>
+
+    <!-- Tartalom -->
+    <main id="main" class="main" style="margin-top: 100px;">
+        <section class="section">
+            <div class="container">
+                <h2 class="text-center">Tornyok Kezelése</h2>
+
+                <!-- Keresési mező és Új Bejegyzés gomb -->
+                <div class="action-container">
+                    <div class="d-flex align-items-center">
+                        <label for="searchHelyszin" class="form-label me-2">Helyszín Keresése:</label>
+                        <select id="searchHelyszin" class="form-select me-3" onchange="filterByHelyszin(this.value)">
+                            <option value="">Összes</option>
+                            <% helyszinek.forEach(helyszin => { %>
+                                <option value="<%= helyszin.id %>"><%= helyszin.nev %></option>
+                            <% }) %>
+                        </select>
+                        <!-- Értesítés itt jelenik meg -->
+                        <div id="alertMessage" class="alert-message"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddForm()">Új Bejegyzés</button>
+                </div>
+
+                <!-- Új Bejegyzés és Módosítás Felugró Formok -->
+                <div class="form-inline mb-4">
+                    <!-- Új Bejegyzés Form -->
+                    <div id="addForm" style="display: none;">
+                        <form action="/crud/add" method="POST" class="d-flex align-items-center" onsubmit="showAlert('Sikeres feltöltés')">
+                            <div>
+                                <label for="darab" class="form-label">Darab:</label>
+                                <input type="number" name="darab" id="darab" class="form-control" required>
+                            </div>
+                            <div>
+                                <label for="teljesitmeny" class="form-label">Teljesítmény (MW):</label>
+                                <input type="number" name="teljesitmeny" id="teljesitmeny" class="form-control" required>
+                            </div>
+                            <div>
+                                <label for="kezdev" class="form-label">Kezdés Éve:</label>
+                                <input type="number" name="kezdev" id="kezdev" class="form-control" required>
+                            </div>
+                            <div>
+                                <label for="helyszinid" class="form-label">Helyszín:</label>
+                                <select name="helyszinid" id="helyszinid" class="form-select" required>
+                                    <% helyszinek.forEach(helyszin => { %>
+                                        <option value="<%= helyszin.id %>"><%= helyszin.nev %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success">Hozzáadás</button>
+                            <button type="button" class="btn btn-secondary" onclick="hideAddForm()">Mégse</button>
+                        </form>
+                    </div>
+
+                    <!-- Módosítás Form -->
+                    <div id="editForm" style="display: none;">
+                        <form id="editFormContent" method="POST" class="d-flex align-items-center" onsubmit="showAlert('Sikeres módosítás')">
+                            <div>
+                                <label for="editDarab" class="form-label">Darab:</label>
+                                <input type="number" name="darab" id="editDarab" class="form-control" required>
+                            </div>
+                            <div>
+                                <label for="editTeljesitmeny" class="form-label">Teljesítmény (MW):</label>
+                                <input type="number" name="teljesitmeny" id="editTeljesitmeny" class="form-control" required>
+                            </div>
+                            <div>
+                                <label for="editKezdev" class="form-label">Kezdés Éve:</label>
+                                <input type="number" name="kezdev" id="editKezdev" class="form-control" required>
+                            </div>
+                            <div>
+                                <label for="editHelyszinid" class="form-label">Helyszín:</label>
+                                <select name="helyszinid" id="editHelyszinid" class="form-select" required>
+                                    <% helyszinek.forEach(helyszin => { %>
+                                        <option value="<%= helyszin.id %>"><%= helyszin.nev %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-warning">Módosítás</button>
+                            <button type="button" class="btn btn-secondary" onclick="hideEditForm()">Mégse</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Táblázat -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Darab</th>
+                                <th>Teljesítmény (MW)</th>
+                                <th>Kezdés Éve</th>
+                                <th>Helyszín</th>
+                                <th>Műveletek</th>
+                            </tr>
+                        </thead>
+                        <tbody id="toronyTableBody">
+                            <% torony.forEach(row => { %>
+                                <tr data-helyszin-id="<%= row.helyszinid %>">
+                                    <td><%= row.id %></td>
+                                    <td><%= row.darab %></td>
+                                    <td><%= row.teljesitmeny %></td>
+                                    <td><%= row.kezdev %></td>
+                                    <td><%= row.helyszin_nev %></td>
+                                    <td>
+                                        <!-- Módosítás -->
+                                        <button class="btn btn-warning btn-sm" onclick="showEditForm('<%= row.id %>', '<%= row.darab %>', '<%= row.teljesitmeny %>', '<%= row.kezdev %>', '<%= row.helyszinid %>')">Módosítás</button>
+                                        <!-- Törlés -->
+                                        <form action="/crud/delete/<%= row.id %>" method="POST" style="display: inline;" onsubmit="showAlert('Sikeres törlés')">
+                                            <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('Biztosan törölni szeretné ezt a tornyot?')">Törlés</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Lábjegyzet -->
+    <%- include('partials/footer') %>
+
+    <script>
+        function showAddForm() {
+            document.getElementById('addForm').style.display = 'block';
+            document.getElementById('editForm').style.display = 'none';
+        }
+
+        function hideAddForm() {
+            document.getElementById('addForm').style.display = 'none';
+        }
+
+        function showEditForm(id, darab, teljesitmeny, kezdev, helyszinid) {
+            const form = document.getElementById('editForm');
+            const editFormContent = document.getElementById('editFormContent');
+
+            document.getElementById('editDarab').value = darab;
+            document.getElementById('editTeljesitmeny').value = teljesitmeny;
+            document.getElementById('editKezdev').value = kezdev;
+            document.getElementById('editHelyszinid').value = helyszinid;
+
+            editFormContent.action = `/crud/update/${id}`;
+            form.style.display = 'block';
+            document.getElementById('addForm').style.display = 'none';
+        }
+
+        function hideEditForm() {
+            document.getElementById('editForm').style.display = 'none';
+        }
+
+        function filterByHelyszin(helyszinId) {
+            const rows = document.querySelectorAll('#toronyTableBody tr');
+            rows.forEach(row => {
+                if (!helyszinId || row.getAttribute('data-helyszin-id') === helyszinId) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function showAlert(message) {
+            const alert = document.getElementById('alertMessage');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000); // 5 másodpercig látható
+        }
+    </script>
+</body>
+</html>
