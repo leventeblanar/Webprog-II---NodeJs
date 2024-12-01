@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Szélerőművek Adatbázis</title>
+    <!-- Stíluslap és egyéb közös elemek -->
+    <%- include('partials/head') %>
+</head>
+<body>
+    <!-- Fejléc -->
+    <%- include('partials/header') %>
+
+    <!-- Tartalom -->
+    <main id="main" class="main" style="margin-top: 100px;">
+        <section class="section">
+            <div class="container">
+                <h2 class="text-center">Szélerőművek Adatbázis</h2>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Név</th>
+                                <th>Email</th>
+                                <th>Tárgy</th>
+                                <th>Üzenet</th>
+                                <th>Küldés ideje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% messages.forEach(message => { %>
+                                <tr>
+                                    <td><%= message.id %></td>
+                                    <td><%= message.nev %></td>
+                                    <td><%= message.email %></td>
+                                    <td><%= message.targy %></td>
+                                    <td><%= message.uzenet %></td>
+                                    <td><%= message.datum %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Lábjegyzet -->
+    <%- include('partials/footer') %>
+</body>
+</html>
